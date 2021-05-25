@@ -16,8 +16,10 @@
 @PluginOwner("jcustenborder")
 @PluginName("kafka-config-provider-vault")
 @Introduction("This plugin provides integration with Hashicorp Vault.")
+@Title("Hashicorp Vault Config Provider")
 package com.github.jcustenborder.kafka.config.vault;
 
 import com.github.jcustenborder.kafka.connect.utils.config.Introduction;
 import com.github.jcustenborder.kafka.connect.utils.config.PluginName;
 import com.github.jcustenborder.kafka.connect.utils.config.PluginOwner;
+import com.github.jcustenborder.kafka.connect.utils.config.Title;
