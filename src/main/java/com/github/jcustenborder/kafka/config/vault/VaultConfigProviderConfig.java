@@ -22,6 +22,7 @@ import com.bettercloud.vault.VaultException;
 import com.github.jcustenborder.kafka.connect.utils.config.ConfigKeyBuilder;
 import com.github.jcustenborder.kafka.connect.utils.config.ConfigUtils;
 import com.github.jcustenborder.kafka.connect.utils.config.Description;
+import com.google.common.base.Splitter;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
@@ -61,6 +62,14 @@ class VaultConfigProviderConfig extends AbstractConfig {
   public static final String SSL_VERIFY_ENABLED_CONFIG = "vault.ssl.verify.enabled";
   static final String SSL_VERIFY_ENABLED_DOC = "Flag to determine if the configProvider should verify the SSL Certificate " +
       "of the Vault server. Outside of development this should never be enabled.";
+
+  public static final String ENGINE_VERSION_CONFIG = "vault.engine.version";
+  static final String ENGINE_VERSION_CONFIG_DOC = "Flag to determine what vault engine is being used. If not specified " +
+      "vault engine 2 will be assumed.";
+
+  public static final String SECRETS_ENGINE_PATH_MAP_CONFIG = "vault.secret.engine.path.map.config";
+  static final String SECRETS_ENGINE_PATH_MAP_CONFIG_DOC = "Map of secret path prefixes to their corresponding vault version. " +
+      "The map has for format of <path-prefix>=<version>&<other-prefix>=<other-version>. For example: secret=1&kv-2=2";
 
   public final int maxRetries;
   public final int retryInterval;
@@ -140,6 +149,18 @@ class VaultConfigProviderConfig extends AbstractConfig {
                 .defaultValue(1000L)
                 .validator(ConfigDef.Range.atLeast(1000L))
                 .build()
+        ).define(
+            ConfigKeyBuilder.of(ENGINE_VERSION_CONFIG, ConfigDef.Type.INT)
+                .documentation(ENGINE_VERSION_CONFIG_DOC)
+                .importance(ConfigDef.Importance.LOW)
+                .defaultValue(2)
+                .build()
+        ).define(
+            ConfigKeyBuilder.of(SECRETS_ENGINE_PATH_MAP_CONFIG, ConfigDef.Type.STRING)
+                .documentation(SECRETS_ENGINE_PATH_MAP_CONFIG_DOC)
+                .importance(ConfigDef.Importance.LOW)
+                .defaultValue(null)
+                .build()
         );
   }
 
@@ -198,6 +219,15 @@ class VaultConfigProviderConfig extends AbstractConfig {
         configException.initCause(e);
         throw configException;
       }
+    }
+    Integer engineVersion = getInt(ENGINE_VERSION_CONFIG);
+    if (engineVersion != null) {
+      result = result.engineVersion(engineVersion);
+    }
+    String secretsEnginePathMapString = getString(SECRETS_ENGINE_PATH_MAP_CONFIG);
+    if (secretsEnginePathMapString != null) {
+      Map<String, String> secretsEnginePathMap = Splitter.on('&').withKeyValueSeparator('=').split(secretsEnginePathMapString);
+      result = result.secretsEnginePathMap(secretsEnginePathMap);
     }
 
     try {
