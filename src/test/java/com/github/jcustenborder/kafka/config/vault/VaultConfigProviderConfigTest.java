@@ -45,8 +45,7 @@ public class VaultConfigProviderConfigTest {
 
   @Test
   public void addressSet() {
-    Map<String, String> settings = new LinkedHashMap<>();
-    settings.put(VaultConfigProviderConfig.ADDRESS_CONFIG, "https://vault.example.com");
+    Map<String, String> settings = MockEnvironment.defaultSettings();
     VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
     VaultConfig vaultConfig = config.createConfig();
     assertNotNull(vaultConfig);
@@ -65,8 +64,7 @@ public class VaultConfigProviderConfigTest {
 
   @Test
   public void tokenSet() {
-    Map<String, String> settings = new LinkedHashMap<>();
-    settings.put(VaultConfigProviderConfig.ADDRESS_CONFIG, "https://vault.example.com");
+    Map<String, String> settings = MockEnvironment.defaultSettings();
     settings.put(VaultConfigProviderConfig.TOKEN_CONFIG, Constants.TOKEN);
     VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
     VaultConfig vaultConfig = config.createConfig();
@@ -75,8 +73,7 @@ public class VaultConfigProviderConfigTest {
   }
   @Test
   public void tokenNotSet() {
-    Map<String, String> settings = new LinkedHashMap<>();
-    settings.put(VaultConfigProviderConfig.ADDRESS_CONFIG, "https://vault.example.com");
+    Map<String, String> settings = MockEnvironment.defaultSettings();
     VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
     EnvironmentLoader environmentLoader = MockEnvironment.of();
     VaultConfig vaultConfig = config.createConfig(environmentLoader);
@@ -85,13 +82,58 @@ public class VaultConfigProviderConfigTest {
 
   @Test
   public void tokenEnvironmentVariable() {
-    Map<String, String> settings = new LinkedHashMap<>();
-    settings.put(VaultConfigProviderConfig.ADDRESS_CONFIG, "https://vault.example.com");
+    Map<String, String> settings = MockEnvironment.defaultSettings();
     VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
     EnvironmentLoader environmentLoader = MockEnvironment.of("VAULT_TOKEN", Constants.TOKEN);
     VaultConfig vaultConfig = config.createConfig(environmentLoader);
     assertNotNull(vaultConfig);
     assertEquals(Constants.TOKEN, vaultConfig.getToken());
+  }
+
+  @Test
+  public void engineVersionSet() {
+    Map<String, String> settings = MockEnvironment.defaultSettings();
+    settings.put(VaultConfigProviderConfig.ENGINE_VERSION_CONFIG, "1");
+    VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
+    EnvironmentLoader environmentLoader = MockEnvironment.of();
+    VaultConfig vaultConfig = config.createConfig(environmentLoader);
+    assertNotNull(vaultConfig);
+    assertEquals(1, vaultConfig.getGlobalEngineVersion());
+  }
+
+  @Test
+  public void engineVersionNotSet() {
+    Map<String, String> settings = MockEnvironment.defaultSettings();
+    VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
+    EnvironmentLoader environmentLoader = MockEnvironment.of();
+    VaultConfig vaultConfig = config.createConfig(environmentLoader);
+    assertNotNull(vaultConfig);
+    assertEquals(2, vaultConfig.getGlobalEngineVersion());
+  }
+
+  @Test
+  public void secretsEnginePathMapSet() {
+    Map<String, String> settings = MockEnvironment.defaultSettings();
+    settings.put(VaultConfigProviderConfig.SECRETS_ENGINE_PATH_MAP_CONFIG, "secret=1&kv-2=2");
+    VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
+    EnvironmentLoader environmentLoader = MockEnvironment.of();
+    VaultConfig vaultConfig = config.createConfig(environmentLoader);
+    assertNotNull(vaultConfig);
+    Map<String, String> secretsEnginePathMap = vaultConfig.getSecretsEnginePathMap();
+    assertNotNull(secretsEnginePathMap);
+    String secretEngineVersion = secretsEnginePathMap.get("secret");
+    assertEquals("1", secretEngineVersion);
+    String kvTwoSecretEngineVersion = secretsEnginePathMap.get("kv-2");
+    assertEquals("2", kvTwoSecretEngineVersion);
+  }
+
+  @Test
+  public void poorlyFormattedSecretsEnginePathMap() {
+    Map<String, String> settings = MockEnvironment.defaultSettings();
+    settings.put(VaultConfigProviderConfig.SECRETS_ENGINE_PATH_MAP_CONFIG, "secret=1&&&kv-2=2");
+    VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
+    EnvironmentLoader environmentLoader = MockEnvironment.of();
+    assertThrows(IllegalArgumentException.class, () -> config.createConfig(environmentLoader));
   }
 
   static class MockEnvironment extends EnvironmentLoader {
@@ -105,6 +147,12 @@ public class VaultConfigProviderConfigTest {
     @Override
     public String loadVariable(String name) {
       return this.values.get(name);
+    }
+
+    public static Map<String, String> defaultSettings() {
+      Map<String, String> settings = new LinkedHashMap<>();
+      settings.put(VaultConfigProviderConfig.ADDRESS_CONFIG, "https://vault.example.com");
+      return settings;
     }
 
     public static MockEnvironment of() {
