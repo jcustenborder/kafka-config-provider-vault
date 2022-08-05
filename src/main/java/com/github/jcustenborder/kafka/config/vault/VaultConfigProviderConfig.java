@@ -164,8 +164,6 @@ class VaultConfigProviderConfig extends AbstractConfig {
         );
   }
 
-  private HashMap<String, Function<VaultConfig, VaultConfig>> loginTranformer = new HashMap<>();
-
   /**
    * Method is used to create a VaultConfig
    *
