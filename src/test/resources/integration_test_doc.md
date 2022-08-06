@@ -1,4 +1,3 @@
-
 # How to replicate locally the same configuration that the integration loads at runtime
 
 You can simply launch the following sh file that do the following:

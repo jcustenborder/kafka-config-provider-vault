@@ -26,6 +26,7 @@ to run the plugin.
 3. Restart the Connect worker.
 
 # Converters
+
 ## [VaultConfigProvider](https://jcustenborder.github.io/kafka-connect-documentation/projects/kafka-config-provider-vault/configProviders/VaultConfigProvider.html)
 
 ```

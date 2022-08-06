@@ -4,6 +4,7 @@ import com.bettercloud.vault.SslConfig;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
+import com.bettercloud.vault.response.LogicalResponse;
 import com.github.jcustenborder.docker.junit5.Compose;
 import com.github.jcustenborder.docker.junit5.Port;
 import com.google.gson.Gson;
@@ -21,6 +22,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Compose(dockerComposePath = "src/test/resources/docker/dev-mode.yml", clusterHealthCheck = VaultClusterHealthCheck.class)
 public class RoleBasedAuthIT {
@@ -143,17 +147,15 @@ public class RoleBasedAuthIT {
       {
         put("most-foundamental-question-of-the-universe", "the answer is 42");
       }
-    });
-  }
+    }).getRestResponse();
 
-  @Test
-  public void testReading() throws VaultException {
-    this.vault.auth().loginByAppRole(roleId, secretId);
-    this.vault.logical().write("secret/data/my-secret", new HashMap<String, Object>() {
-      {
-        put("most-foundamental-question-of-the-universe", "the answer is 42");
-      }
-    });
+    LogicalResponse response = this.vault.logical().read("secret/data/my-secret");
+    Set<Map.Entry<String, String>> secrets = response.getData().entrySet();
+    assertEquals(secrets.size(), 1);
+
+    Map.Entry<String, String> superSecret = secrets.iterator().next();
+    assertEquals(superSecret.getKey(), "most-foundamental-question-of-the-universe");
+    assertEquals(superSecret.getValue(), "the answer is 42");
   }
 
 }

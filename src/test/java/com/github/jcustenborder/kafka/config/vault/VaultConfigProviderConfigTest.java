@@ -31,12 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class VaultConfigProviderConfigTest {
   private static final Logger log = LoggerFactory.getLogger(VaultConfigProviderConfigTest.class);
+
   @Test
   public void addressNotSet() {
     Map<String, String> settings = new LinkedHashMap<>();
     EnvironmentLoader environmentLoader = MockEnvironment.of();
     VaultConfigProviderConfig config = new VaultConfigProviderConfig(settings);
-    assertThrows(ConfigException.class, ()->{
+    assertThrows(ConfigException.class, () -> {
       VaultConfig vaultConfig = config.createConfig(environmentLoader);
     });
 
@@ -73,6 +74,7 @@ public class VaultConfigProviderConfigTest {
     assertNotNull(vaultConfig);
     assertEquals(Constants.TOKEN, vaultConfig.getToken());
   }
+
   @Test
   public void tokenNotSet() {
     Map<String, String> settings = new LinkedHashMap<>();
