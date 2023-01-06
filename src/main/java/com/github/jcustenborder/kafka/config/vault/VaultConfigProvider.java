@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -54,7 +53,8 @@ public class VaultConfigProvider implements ConfigProvider {
   public ConfigData get(String path, Set<String> keys) {
     log.info("get() - path = '{}' keys = '{}'", path, keys);
     try {
-      LogicalResponse logicalResponse = this.vault.withRetries(this.config.maxRetries, this.config.retryInterval)
+      LogicalResponse logicalResponse = this.vault
+          .withRetries(this.config.maxRetries, this.config.retryInterval)
           .logical()
           .read(path);
       RestResponse restResponse = logicalResponse.getRestResponse();
@@ -116,6 +116,7 @@ public class VaultConfigProvider implements ConfigProvider {
       );
     }
     log.trace("authConfig = {}", authConfig);
+    this.vault = new Vault(authConfig.updatedConfig);
   }
 
   public static ConfigDef config() {

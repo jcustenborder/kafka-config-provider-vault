@@ -1,12 +1,12 @@
 /**
  * Copyright © 2021 Jeremy Custenborder (jcustenborder@gmail.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,9 @@
  */
 package com.github.jcustenborder.kafka.config.vault;
 
+import com.bettercloud.vault.EnvironmentLoader;
 import com.bettercloud.vault.Vault;
+import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.response.AuthResponse;
 import com.bettercloud.vault.response.LookupResponse;
@@ -42,9 +44,11 @@ public class AuthHandlers {
 
   static class AuthConfig {
     public final boolean isRenewable;
+    public final VaultConfig updatedConfig;
 
-    AuthConfig(boolean isRenewable) {
+    AuthConfig(boolean isRenewable, VaultConfig updatedConfig) {
       this.isRenewable = isRenewable;
+      this.updatedConfig = updatedConfig;
     }
 
     @Override
@@ -137,7 +141,8 @@ public class AuthHandlers {
       dumpDebug(lookupResponse);
       log.info("Authenticated to Vault as {}: path: {}", lookupResponse.getDisplayName(), lookupResponse.getPath());
       return new AuthConfig(
-          lookupResponse.isRenewable()
+          lookupResponse.isRenewable(),
+          config.createConfig()
       );
     }
   }
@@ -181,9 +186,19 @@ public class AuthHandlers {
               .reduce(response.getAuthPolicies().get(0), (acc, role) -> acc + "," + role)
       );
 
-
       return new AuthConfig(
-          response.isAuthRenewable()
+          response.isAuthRenewable(),
+          config.createConfig(new EnvironmentLoader() {
+            @Override
+            public String loadVariable(String name) {
+
+              if (name.equals("VAULT_TOKEN")) {
+                return response.getAuthClientToken();
+              } else {
+                return super.loadVariable(name);
+              }
+            }
+          })
       );
     }
   }
