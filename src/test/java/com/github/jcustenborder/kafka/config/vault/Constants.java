@@ -17,4 +17,6 @@ package com.github.jcustenborder.kafka.config.vault;
 
 class Constants {
   public static final String TOKEN = "kxbfgiertgibadsf";
+  public static final String SECRET_VALUE = "the answer is 42";
+  public static final String SECRET_KEY = "most-foundamental-question-of-the-universe";
 }

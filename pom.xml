@@ -65,6 +65,18 @@
             <artifactId>vault-java-driver</artifactId>
             <version>5.1.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.10.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.9.1</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -80,7 +92,9 @@
                         </goals>
                         <configuration>
                             <confluentControlCenterIntegration>true</confluentControlCenterIntegration>
-                            <documentationUrl>https://jcustenborder.github.io/kafka-connect-documentation/projects/kafka-config-provider-vault/</documentationUrl>
+                            <documentationUrl>
+                                https://jcustenborder.github.io/kafka-connect-documentation/projects/kafka-config-provider-vault/
+                            </documentationUrl>
                             <componentTypes>
                                 <componentType>converter</componentType>
                             </componentTypes>

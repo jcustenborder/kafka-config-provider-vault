@@ -1,12 +1,12 @@
 /**
  * Copyright © 2021 Jeremy Custenborder (jcustenborder@gmail.com)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,6 +19,7 @@ import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultConfig;
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.response.LogicalResponse;
+import com.bettercloud.vault.rest.RestResponse;
 import com.github.jcustenborder.kafka.connect.utils.config.Description;
 import org.apache.kafka.common.config.ConfigData;
 import org.apache.kafka.common.config.ConfigDef;
@@ -52,10 +53,12 @@ public class VaultConfigProvider implements ConfigProvider {
   public ConfigData get(String path, Set<String> keys) {
     log.info("get() - path = '{}' keys = '{}'", path, keys);
     try {
-      LogicalResponse logicalResponse = this.vault.withRetries(this.config.maxRetries, this.config.retryInterval)
+      LogicalResponse logicalResponse = this.vault
+          .withRetries(this.config.maxRetries, this.config.retryInterval)
           .logical()
           .read(path);
-      if (logicalResponse.getRestResponse().getStatus() == 200) {
+      RestResponse restResponse = logicalResponse.getRestResponse();
+      if (restResponse.getStatus() == 200) {
         Predicate<Map.Entry<String, String>> filter = keys == null || keys.isEmpty() ?
             entry -> true : entry -> keys.contains(entry.getKey());
         Map<String, String> result = logicalResponse.getData()
@@ -71,7 +74,13 @@ public class VaultConfigProvider implements ConfigProvider {
         return new ConfigData(result, ttl);
       } else {
         throw new ConfigException(
-            String.format("Vault path '%s' was not found", path)
+            String.format(
+                "Vault path '%s' was not found. Rest response details: { code: [%s], mimeType: [%s], response: [%s] }",
+                path,
+                restResponse.getStatus(),
+                restResponse.getMimeType(),
+                new String(restResponse.getBody())
+            )
         );
       }
     } catch (VaultException e) {
@@ -107,6 +116,7 @@ public class VaultConfigProvider implements ConfigProvider {
       );
     }
     log.trace("authConfig = {}", authConfig);
+    this.vault = new Vault(authConfig.updatedConfig);
   }
 
   public static ConfigDef config() {

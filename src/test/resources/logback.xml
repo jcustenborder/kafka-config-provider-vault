@@ -7,6 +7,6 @@
     <logger name="com.github.jcustenborder.kafka.connect.spooldir" level="TRACE"/>
     <logger name="org.reflections" level="ERROR"/>
     <root level="INFO">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
